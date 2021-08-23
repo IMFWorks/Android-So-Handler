@@ -1,0 +1,33 @@
+import com.android.utils.FileUtils
+import com.sun.jndi.toolkit.url.Uri
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        maven { url uri("${rootDir}/maven") }
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:3.3.3"
+        if (Boolean.parseBoolean(userPlugin)) {
+            classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}"
+            classpath "com.imf.so:file-plugin:${SO_PLUGIN_VERSION}"
+        }
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        maven { url uri("${rootDir}/maven") }
+        google()
+        jcenter()
+        maven { url "https://raw.githubusercontent.com/Android-Mainli/Maven/master" }
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

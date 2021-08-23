@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context="com.imf.test.MainActivity">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:lineSpacingExtra="2dp"
+        android:text="过滤日志TAG: jniLibs\n查看加载情况格式如下:\n进程名 - 库名称 - 是否是主线程"
+        android:textColor="@color/design_default_color_on_background"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/sample_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:background="#c7edcc"
+        android:padding="10dp"
+        android:text="点击调用Native方法"
+        android:textColor="#333333"
+        android:textStyle="normal" />
+
+</LinearLayout>

@@ -1,0 +1,73 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.imf.test"
+        minSdkVersion 21
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation project(path: ':testLibrary')
+    implementation files('libs/aar-release.aar')
+    implementation 'com.mainli:blur:1.0.0'
+    if (Boolean.parseBoolean(userPlugin)) {
+        implementation "com.imf.so:load-assets-7z:${SO_PLUGIN_VERSION}"
+    }
+}
+
+if (Boolean.parseBoolean(userPlugin)) {
+    apply plugin: 'SoFilePlugin'
+    SoFileConfig {
+        //设置debug下不删除与压缩so库
+//        excludeBuildTypes = ['debug']
+        //设置要删除的so库
+        deleteSoLibs = [
+        ]
+        //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
+        compressSo2AssetsLibs = [
+                'libtestLibrary.so',
+                'libsource.so',
+                'libnative-aar-lib.so',
+                'libblur-lib.so',
+        ]
+    }
+
+    apply plugin: 'SoLoadHookPlugin'
+    SoLoadHookConfig {
+        //是否跳过R文件与BuildConfig
+        isSkipRAndBuildConfig = true
+        //设置跳过的包名,跳过的包不去hook 修改后请先clean
+//    excludePackage = ['com.imf.test']
+    }
+}

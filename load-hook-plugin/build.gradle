@@ -1,0 +1,20 @@
+apply plugin: 'groovy'
+
+repositories {
+    jcenter()
+    google()
+}
+
+dependencies {
+    //gradle sdk
+    implementation gradleApi()
+    //groovy sdk
+    implementation localGroovy()
+    implementation 'com.android.tools.build:gradle:3.3.3'
+    implementation 'com.android.tools.build:gradle-api:3.3.3'
+}
+
+def uploadConfig() {
+    ['groupId': 'com.imf.so', 'artifactId': "${name}", 'version': "${SO_PLUGIN_VERSION}"]
+}
+apply from: "${rootDir}/uploadPlugin.gradle"

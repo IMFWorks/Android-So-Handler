@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.imf.test"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
@@ -51,6 +51,14 @@ if (Boolean.parseBoolean(userPlugin)) {
     SoFileConfig {
         //设置debug下不删除与压缩so库
 //        excludeBuildTypes = ['debug']
+
+        /**
+         * 强制保留所有依赖 对于minSdkVersion大于23的工程也保留所有依赖
+         * 默认为false时
+         * minSdkVersion <= 23 保留所有依赖
+         * minSdkVersion > 23  只保留deleteSoLibs与compressSo2AssetsLibs中处理过的依赖
+         */
+        forceNeededRetainAllDependencies = true
         //设置要删除的so库
         deleteSoLibs = [
         ]
@@ -60,6 +68,14 @@ if (Boolean.parseBoolean(userPlugin)) {
                 'libsource.so',
                 'libnative-aar-lib.so',
                 'libblur-lib.so',
+        ]
+        /**
+         * 配置自定义依赖
+         * 用于解决 a.so 并未声明依赖 b.so 并且内部通过dlopen打开b.so
+         * 或者反射System.loadLibrary等跳过hook加载so库等场景
+         */
+        customDependencies = [
+                'libsource.so': ['liblog.so']
         ]
     }
 

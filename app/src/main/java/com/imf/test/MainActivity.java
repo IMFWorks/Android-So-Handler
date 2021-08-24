@@ -2,13 +2,17 @@ package com.imf.test;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.imf.so.assets.load.AssetsSoLoadBy7zFileManager;
 import com.imf.testLibrary.NativeTestLibrary;
 import com.mainli.mylibrary.NativeLibTest;
+
+import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,5 +38,33 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void onClearSoFile(View view) {
+        File saveLibsDir = getDir("jniLibs", 0);
+        if (deleteDir(saveLibsDir)) {
+            Toast.makeText(this, "成功删除: " + saveLibsDir, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "删除失败: " + saveLibsDir, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+    /**
+     * 递归删除目录下的所有文件及子目录下所有文件
+     */
+    private boolean deleteDir(File dir) {
+        if (dir.isDirectory()) {
+            String[] children = dir.list();
+            //递归删除目录中的子目录下
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+        // 目录此时为空，可以删除
+        return dir.delete();
     }
 }

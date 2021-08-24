@@ -34,14 +34,31 @@ apply plugin: 'SoFileConfig77'
 SoFileConfig {
     //设置debug下不删除与压缩so库
     excludeBuildTypes = ['debug']
+    /**
+     * 强制保留所有依赖 对于minSdkVersion大于23的工程也保留所有依赖
+     * 默认为false时
+     * minSdkVersion <= 23 保留所有依赖
+     * minSdkVersion > 23  只保留deleteSoLibs与compressSo2AssetsLibs中处理过的依赖
+     */
+    forceNeededRetainAllDependencies = true
     //设置要删除的so库
     deleteSoLibs = [
     ]
     //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
     //这里名字要是带有lib开头与.so结尾与apk中so库名称一致
-    //如果使用7z压缩请确保7z命令加入到环境变量，mac推荐使用brew install p7zip进行安装 windows 去https://www.7-zip.org/下载安装，并忘记配置7z到环境变量中
+    //如果使用7z压缩请确保7z命令加入到环境变量
+    //mac推荐使用brew install p7zip进行安装
+    //windows 去https://www.7-zip.org/下载安装，别忘记配置7z到环境变量中
     compressSo2AssetsLibs = [
       'libxxx.so'
+    ]
+    /**
+     * 配置自定义依赖
+     * 用于解决 a.so 并未声明依赖 b.so 并且内部通过dlopen打开b.so
+     * 或者反射System.loadLibrary等跳过hook加载so库等场景
+     */
+    customDependencies = [
+            'libsource.so': ['liblog.so']
     ]
 }
 
@@ -56,7 +73,7 @@ SoLoadHookConfig {
 AssetsSoLoadBy7zFileManager.init(v.getContext());
 ```
 
-> SO_PLUGIN_VERSION 目前版本 `0.0.1`
+> SO_PLUGIN_VERSION 目前版本 `0.0.2`
 
 ## 插件介绍
 
@@ -74,7 +91,6 @@ AssetsSoLoadBy7zFileManager.init(v.getContext());
 * gradle配置
 
 ```groovy
-//SO_PLUGIN_VERSION 目前版本 0.0.1
 //build.gradle中只加入
 classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}" 
 //app.gradle中只配置

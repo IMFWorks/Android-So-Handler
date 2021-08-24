@@ -8,9 +8,16 @@
     android:orientation="vertical"
     tools:context="com.imf.test.MainActivity">
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="onClearSoFile"
+        android:text="清理so解压缓存" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:gravity="center"
         android:lineSpacingExtra="2dp"
         android:text="过滤日志TAG: jniLibs\n查看加载情况格式如下:\n进程名 - 库名称 - 是否是主线程"
@@ -24,7 +31,7 @@
         android:layout_marginTop="30dp"
         android:background="#c7edcc"
         android:padding="10dp"
-        android:text="点击调用Native方法"
+        android:text="点击调用Native方法,查看加载情况"
         android:textColor="#333333"
         android:textStyle="normal" />
 

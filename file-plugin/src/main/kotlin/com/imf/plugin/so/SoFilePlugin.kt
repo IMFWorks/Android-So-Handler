@@ -8,8 +8,6 @@ import com.android.utils.FileUtils
 import com.elf.ElfParser
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.Logger
 import org.json.simple.JSONObject
 import java.io.File
 import java.io.IOException
@@ -26,6 +24,26 @@ open class SoFileExtensions {
     //压缩放在assets下的so库
     var compressSo2AssetsLibs: Set<String>? = null
     var excludeBuildTypes: Set<String>? = null
+
+
+    /**
+     * 是否需要保留所有依赖项
+     * 默认为保留所有只保留删除或者压缩的依赖
+     * minSdkVersion小于23则需要保留
+     * 如果minSdkVersion大于23则不需要
+     * 不可手动设置
+     */
+    var neededRetainAllDependencies: Boolean = true
+
+    //强制保留所有依赖 对于minSdkVersion大于23的工程也保留所有依赖
+    var forceNeededRetainAllDependencies: Boolean = false
+
+    /**
+     * 配置自定义依赖
+     * 用于解决 a.so 并未声明依赖 b.so 并且内部通过dlopen打开b.so
+     * 或者反射System.loadLibrary等跳过hook加载so库等场景
+     */
+    var customDependencies: Map<String, List<String>>? = null
 }
 
 class SoFilePlugin : Plugin<Project> {
@@ -33,24 +51,43 @@ class SoFilePlugin : Plugin<Project> {
         val pluginConfig: SoFileExtensions = project.extensions.create("SoFileConfig", SoFileExtensions::class.java)
         val android: AppExtension = project.extensions.getByType(AppExtension::class.java)
 
-        android.registerTransform(SoFileTransform(pluginConfig, FileUtils.join(project.buildDir, "intermediates", "merged_assets"), project.logger))
-        project.afterEvaluate { pluginConfig.abiFilters = android.defaultConfig.ndk.abiFilters }
+        android.registerTransform(SoFileTransform(pluginConfig, FileUtils.join(project.buildDir, "intermediates", "merged_assets")))
+        project.afterEvaluate {
+            val defaultConfig = android.defaultConfig
+            pluginConfig.abiFilters = defaultConfig.ndk.abiFilters
+            val minSdkVersion: Int = defaultConfig.minSdkVersion?.apiLevel ?: 0
+            if (pluginConfig.forceNeededRetainAllDependencies) {
+                pluginConfig.neededRetainAllDependencies = true
+            } else {
+                pluginConfig.neededRetainAllDependencies = minSdkVersion <= 23
+            }
+        }
     }
 }
 
-abstract class BaseLoggerTransform(private val log: Logger) : Transform() {
-
+abstract class BaseLoggerTransform() : Transform() {
+    private var isShowLog = false;
     fun logD(message: String) {
-        log.log(LogLevel.DEBUG, "SoFilePlugin: ${message}")
+        if (isShowLog) {
+            println("SoFilePlugin-DEBUG: ${message}")
+        }
+
     }
 
     fun logI(message: String) {
-        log.log(LogLevel.INFO, "SoFilePlugin: ${message}")
+        if (isShowLog) {
+            println("SoFilePlugin-INFO: ${message}")
+        }
     }
 
+
+    override fun transform(transformInvocation: TransformInvocation?) {
+        isShowLog = transformInvocation?.context?.variantName?.contains("debug", true) ?: false
+        super.transform(transformInvocation)
+    }
 }
 
-class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: File, log: Logger) : BaseLoggerTransform(log) {
+class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: File) : BaseLoggerTransform() {
     var saveJson: JSONObject? = null
     override fun getName(): String = "soFileTransform"
 
@@ -60,17 +97,24 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
 
     override fun isIncremental(): Boolean = false
 
-    override fun transform(context: Context, inputs: MutableCollection<TransformInput>, referencedInputs: MutableCollection<TransformInput>, outputProvider: TransformOutputProvider, isIncremental: Boolean) {
+    override fun transform(transformInvocation: TransformInvocation?) {
+        super.transform(transformInvocation)
+        transformInvocation ?: return
+        val outputProvider = transformInvocation.outputProvider
         if (!isIncremental) {
             outputProvider.deleteAll()
             saveJson = null
         }
-        val variantName = context.getVariantName()
+        val variantName = transformInvocation.context.getVariantName()
         val assetsOutDestFile = buildAssetsOutDestFile(variantName)
-        val isRetainAll = isRetainAllSoFileByVariantName(variantName)
+        var isRetainAll = isRetainAllSoFileByVariantName(variantName)
+        //如果没有配置删除或者压缩则保留全部
+        if (!isRetainAll && extension.deleteSoLibs.isNullOrEmpty() && extension.compressSo2AssetsLibs.isNullOrEmpty()) {
+            isRetainAll = true
+        }
         println("isRetainAll:${isRetainAll}")
         val executor: WaitableExecutor = WaitableExecutor.useGlobalSharedThreadPool()
-        inputs.forEach { input: TransformInput ->
+        transformInvocation.inputs.forEach { input: TransformInput ->
             input.directoryInputs.forEach { directoryInput: DirectoryInput ->
                 val dest: File = outputProvider.getContentLocation(directoryInput.name, directoryInput.contentTypes, directoryInput.scopes, Format.DIRECTORY)
                 val dir: File = directoryInput.file
@@ -98,7 +142,6 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
                                                 assetsOutDestFile,
                                                 extension.deleteSoLibs,
                                                 extension.compressSo2AssetsLibs, recordMap)
-
                                     })
                                 }
                             }
@@ -182,8 +225,8 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
         val newMd5File = File(src.parentFile, md5)
         var name = src.name
         if (src.renameTo(newMd5File)) {
-            name = unmapLibraryName(name)
             renameList.add(name)
+            name = unmapLibraryName(name)
             val destFile = File(assetsABIDir, "${name}&${md5}.7z")
             val cmd = "7z a ${destFile.getAbsolutePath()} ${newMd5File.getAbsolutePath()} -t7z -mx=9 -m0=LZMA2 -ms=10m -mf=on -mhc=on -mmt=on -mhcf"
             logD("cmd->${cmd}")
@@ -197,13 +240,13 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
             return null;
         }
         var elfParser: ElfParser? = null
-        var parseNeededDependencies: List<String>? = null
+        var dependenciesSet: MutableSet<String> = HashSet()
         try {
             try {
                 elfParser = ElfParser(soFile)
-                parseNeededDependencies = elfParser.parseNeededDependencies()
+                dependenciesSet.addAll(elfParser.parseNeededDependencies())
             } catch (ignored: Exception) {
-                print("so解析失败:${soFile.absolutePath}")
+                logD("so解析失败:${soFile.absolutePath}")
             } finally {
                 elfParser?.close()
             }
@@ -212,18 +255,34 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
             // be picked up by the system's resolver, if not, an exception will be thrown by the
             // next statement, so its better to try twice.
         }
-        if (parseNeededDependencies?.isNotEmpty() ?: false) {
-            return parseNeededDependencies!!.stream()
-                    .filter {
-                        (deleteSoLibs?.contains(it) ?: false)
-                                || (compressSo2AssetsLibs?.contains(it) ?: false)
-                    }.map {
-                        unmapLibraryName(it)
-                    }.filter {
-                        renameList.contains(it) || File(abiDir, mapLibraryName(it)).exists()
-                    }.collect(Collectors.toList())
+        //在不需要全部依赖下,尝试进行依赖简化
+        logD("是否全部保留依赖:${extension.neededRetainAllDependencies}------解析出的依赖:${dependenciesSet}")
+        if (!extension.neededRetainAllDependencies) {
+            if (!dependenciesSet.isNullOrEmpty()) {
+                dependenciesSet = dependenciesSet.stream()
+                        .filter {
+                            (deleteSoLibs?.contains(it) ?: false)
+                                    || (compressSo2AssetsLibs?.contains(it) ?: false)
+                        }.filter {
+                            renameList.contains(it) || File(abiDir, it).exists()
+                        }.collect(Collectors.toSet())
+            }
         }
-        return parseNeededDependencies
+        //扩展自定义依赖
+        val key = soFile.name
+        logD("配置自定义依赖前:${dependenciesSet}----- key:${key},${extension.customDependencies?.get(key)}")
+        if (extension.customDependencies?.containsKey(key) ?: false) {
+            val custom: List<String>? = extension.customDependencies?.get(key)
+            if (!custom.isNullOrEmpty()) {
+                dependenciesSet.addAll(custom)
+            }
+        }
+        //libxxx.so -> xxx
+        return if (dependenciesSet.isNullOrEmpty()) {
+            null
+        } else {
+            dependenciesSet.stream().map { unmapLibraryName(it) }.collect(Collectors.toList())
+        }
     }
 
     //liblog.so -> log

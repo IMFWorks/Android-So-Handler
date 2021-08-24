@@ -39,7 +39,7 @@ SoFileConfig {
     ]
     //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
     //这里名字要是带有lib开头与.so结尾与apk中so库名称一致
-    //如果使用7z压缩请确保7z命令加入到环境变量，mac推荐使用brew install p7zip进行安装 windows [点击下载安装](https://www.7-zip.org/)，并配置环境变量
+    //如果使用7z压缩请确保7z命令加入到环境变量，mac推荐使用brew install p7zip进行安装 windows 去https://www.7-zip.org/下载安装，并忘记配置7z到环境变量中
     compressSo2AssetsLibs = [
       'libxxx.so'
     ]

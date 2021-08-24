@@ -1,6 +1,15 @@
 # Android-So-Handler
+**减包工具集合 , 通过处理so库实现减包**
 
-接入方式
+### 特点如下:
+1. 在**不修改代码**的情况下,完成对指定so库(包含引入的aar里的so库)进行**压缩**,并**代理加载方法**,在**第一次加载时解压加载**等一些列操作
+2. 支持删除指定so库 方便自定义云端下发 需要自己编写侵入代码
+> 说解压不要侵入代码,其实还需要**一行初始化** ~_ ~! `AssetsSoLoadBy7zFileManager.init(getContext())`  后边考虑**隐藏**
+
+### 接入方式如下:
+
+ps:配置较多全可走默认 ~_ ~!
+
 ```groovy
 //1.根build.gradle中加入
 buildscript {
@@ -56,6 +65,7 @@ SoFileConfig {
      * 配置自定义依赖
      * 用于解决 liba.so 并未声明依赖 libb.so 并且内部通过dlopen打开libb.so
      * 或者反射System.loadLibrary等跳过hook加载so库等场景
+     * 如果没有这种情况可以不添加该配置,配置结构为Map<String,List<String>>
      */
     customDependencies = [
             'liba.so': ['libb.so',...]
@@ -70,7 +80,7 @@ SoLoadHookConfig {
 		excludePackage = ['com.imf.test']
 }
 //3.初始化 
-AssetsSoLoadBy7zFileManager.init(v.getContext());
+AssetsSoLoadBy7zFileManager.init(getContext());
 ```
 
 > SO_PLUGIN_VERSION 目前版本 `0.0.2`
@@ -99,7 +109,7 @@ SoLoadHookConfig {
 		//是否跳过R文件与BuildConfig
 		isSkipRAndBuildConfig = true
 		//设置跳过的包名,跳过的包不去hook 修改后请先clean
-		excludePackage = ['com.imf.test']
+		excludePackage = ['com.imf.test.']
 }
 dependencies {
   implementation "com.imf.so:load-hook:${SO_PLUGIN_VERSION}"
@@ -115,9 +125,12 @@ public interface SoLoadProxy {
 
     void load(String filename);
 }
+SoLoadHook.setSoLoadProxy(new XXXSoLoadProxy())
 ```
 
-> 实现SoLoadProxy类后不会被修改字节码
+> 实现SoLoadProxy类后不会被修改`System.loadLibrary`与`System.load`字节码
+> 如果不想在指定包名下修改 在excludePackage中配置报名
+> 如果不想在指定类或方法下被修改字节码,请添加注解@KeepSystemLoadLib
 
 ### 二、SoFilePlugin插件依赖SoLoadHook
 

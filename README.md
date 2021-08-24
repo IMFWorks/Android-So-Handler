@@ -1,7 +1,6 @@
 # Android-So-Handler
 
 接入方式
-
 ```groovy
 //1.根build.gradle中加入
 buildscript {
@@ -30,7 +29,8 @@ dependencies {
   implementation "com.imf.so:load-assets-7z:${SO_PLUGIN_VERSION}"
   ...
 }
-apply plugin: 'SoFileConfig'
+
+apply plugin: 'SoFileConfig77'
 SoFileConfig {
     //设置debug下不删除与压缩so库
     excludeBuildTypes = ['debug']
@@ -38,7 +38,8 @@ SoFileConfig {
     deleteSoLibs = [
     ]
     //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
-  	//这里名字要是带有lib开头与.so结尾与apk中so库名称一致
+    //这里名字要是带有lib开头与.so结尾与apk中so库名称一致
+    //如果使用7z压缩请确保7z命令加入到环境变量，mac推荐使用brew install p7zip进行安装 windows [点击下载安装](https://www.7-zip.org/)，并配置环境变量
     compressSo2AssetsLibs = [
       'libxxx.so'
     ]

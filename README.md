@@ -54,11 +54,11 @@ SoFileConfig {
     ]
     /**
      * 配置自定义依赖
-     * 用于解决 a.so 并未声明依赖 b.so 并且内部通过dlopen打开b.so
+     * 用于解决 liba.so 并未声明依赖 libb.so 并且内部通过dlopen打开libb.so
      * 或者反射System.loadLibrary等跳过hook加载so库等场景
      */
     customDependencies = [
-            'libsource.so': ['liblog.so']
+            'liba.so': ['libb.so',...]
     ]
 }
 
@@ -129,4 +129,9 @@ public interface SoLoadProxy {
 > 2. 解压部分微调自[AndroidUn7z](https://github.com/hzy3774/AndroidUn7zip)
 
 **接入方式参考顶部最开始部分**
+
+### 三、TODO
+1. 尝试对比压缩工具 zstd 与 7z
+2. 针对deleteSoLibs中删除so后,自动上传云端与云端下发方案完成code
+> ps:前期先出下载列表,用于启动app时下载,让云端下发方案先跑起来
 

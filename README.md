@@ -39,7 +39,7 @@ dependencies {
   ...
 }
 
-apply plugin: 'SoFileConfig77'
+apply plugin: 'SoFilePlugin'
 SoFileConfig {
     //设置debug下不删除与压缩so库
     excludeBuildTypes = ['debug']
@@ -72,7 +72,7 @@ SoFileConfig {
     ]
 }
 
-apply plugin: 'SoLoadHookConfig'
+apply plugin: 'SoLoadHookPlugin'
 SoLoadHookConfig {
 		//是否跳过R文件与BuildConfig
 		isSkipRAndBuildConfig = true
@@ -87,7 +87,7 @@ AssetsSoLoadBy7zFileManager.init(getContext());
 
 ## 插件介绍
 
-### 一、 SoLoadHook插件
+### 一、 SoLoadHookPlugin插件
 
 1. 通过Hook `System.loadLibrary` 与 `System.load`实现加载转发具体步骤如下:
 
@@ -104,7 +104,7 @@ AssetsSoLoadBy7zFileManager.init(getContext());
 //build.gradle中只加入
 classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}" 
 //app.gradle中只配置
-apply plugin: 'SoLoadHookConfig'
+apply plugin: 'SoLoadHookPlugin'
 SoLoadHookConfig {
 		//是否跳过R文件与BuildConfig
 		isSkipRAndBuildConfig = true
@@ -132,7 +132,7 @@ SoLoadHook.setSoLoadProxy(new XXXSoLoadProxy())
 > 如果不想在指定包名下修改 在excludePackage中配置报名
 > 如果不想在指定类或方法下被修改字节码,请添加注解@KeepSystemLoadLib
 
-### 二、SoFilePlugin插件依赖SoLoadHook
+### 二、SoFilePlugin插件依赖SoLoadHookPlugin
 
 1. 通过transform插件对so库进行7z压缩(利用压缩差完成压缩apk),压缩后放入`asstes`下的`jniLib`
 2. 根据压缩或删除so情况生成`info.json`

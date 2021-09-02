@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.imf.so</groupId>
+  <artifactId>android-un7z</artifactId>
+  <version>0.0.3-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20210902.132928</timestamp>
+      <buildNumber>3</buildNumber>
+    </snapshot>
+    <lastUpdated>20210902132928</lastUpdated>
+  </versioning>
+</metadata>

@@ -6,6 +6,28 @@
 2. 支持删除指定so库 方便自定义云端下发 需要自己编写侵入代码
 > 说解压不要侵入代码,其实还需要**一行初始化** ~_ ~! `AssetsSoLoadBy7zFileManager.init(getContext())`  后边考虑**隐藏**
 
+### 解压数据:
+
+|      so库名称      | apk包中所占大小 | 7z极限压缩大小 | 解压后实际大小 | 解压耗时(毫秒) |
+| :----------------: | :-------------: | :------------: | :------------: | :------------: |
+|   RTCStatistics    |  1331kb(1.3M)   |     958kb      | 2752kb(2.68M)  |      109       |
+| flutter(Debug版本) | 10,547kb(10.3M) |     6360kb     | 23358kb(22.8M) |      700       |
+| bd_idl_pass_token  |      9.6k       |      8kb       |      17kb      |       3        |
+|    idl_license     |     63.3kb      |      51kb      |     113kb      |       6        |
+|      FaceSDK       |     269.5kb     |     220kb      |     450kb      |       25       |
+|      turbonet      | 1,638.4kb(1.6M) |     1258kb     |     2737kb     |      167       |
+|   gnustl_shared    |     273.7kb     |     195kb      |     693kb      |       28       |
+|     xiaoyuhost     |     426.9kb     |     309kb      |   1009kb(1M)   |       48       |
+|    crab_native     |     57.7kb      |      44kb      |     109kb      |       7        |
+
+> **apk包中所占大小:**apk属于zip压缩 所以apk包中已经为zip压缩后大小
+>
+> **7z极限压缩大小:**7z极限压缩大小是执行7z a xxx.7z  libxxx.so -t7z -mx=9 -m0=LZMA2 -ms=10m -mf=on -mhc=on -mmt=on -mhcf 压缩有大小
+>
+> **解压后实际大小:** 指so文件实际大小,AndroidStudio中文件大小
+>
+> **解压耗时(毫秒):**统计手机为谷歌**Pixel 2XL** 骁龙**835**处理器
+
 ### 接入方式如下:
 
 ps:配置较多全可走默认 ~_ ~!
@@ -44,7 +66,7 @@ SoFileConfig {
     //设置debug下不删除与压缩so库
     excludeBuildTypes = ['debug']
     /**
-     * 强制保留所有依赖 对于minSdkVersion大于23的工程也保留所有依赖
+     * 强制保留所有依赖
      * 默认为false时
      * minSdkVersion <= 23 保留所有依赖
      * minSdkVersion > 23  只保留deleteSoLibs与compressSo2AssetsLibs中处理过的依赖
@@ -83,7 +105,7 @@ SoLoadHookConfig {
 AssetsSoLoadBy7zFileManager.init(getContext());
 ```
 
-> SO_PLUGIN_VERSION 目前版本 `0.0.2`
+> SO_PLUGIN_VERSION 目前版本 `0.0.3-SNAPSHOT`
 
 ## 插件介绍
 
@@ -145,6 +167,8 @@ SoLoadHook.setSoLoadProxy(new XXXSoLoadProxy())
 
 ### 三、TODO
 1. 尝试对比压缩工具 zstd 与 7z
-2. 针对deleteSoLibs中删除so后,自动上传云端与云端下发方案完成code
+2. 兼容[facebook](https://github.com/facebook)/**[SoLoader](https://github.com/facebook/SoLoader)**库解压加载
+3. 优化多线程加载so逻辑
+4. 针对deleteSoLibs中删除so后,自动上传云端与云端下发方案完成code
 > ps:前期先出下载列表,用于启动app时下载,让云端下发方案先跑起来
 

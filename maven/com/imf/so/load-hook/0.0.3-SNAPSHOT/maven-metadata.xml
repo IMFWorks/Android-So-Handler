@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>com.imf.so</groupId>
+  <artifactId>load-hook</artifactId>
+  <version>0.0.3-SNAPSHOT</version>
+  <versioning>
+    <snapshot>
+      <timestamp>20210902.132935</timestamp>
+      <buildNumber>3</buildNumber>
+    </snapshot>
+    <lastUpdated>20210902132935</lastUpdated>
+  </versioning>
+</metadata>

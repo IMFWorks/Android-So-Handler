@@ -25,6 +25,8 @@ open class SoFileExtensions {
     var compressSo2AssetsLibs: Set<String>? = null
     var excludeBuildTypes: Set<String>? = null
 
+    var excludeDependencies: Set<String>? = null
+
 
     /**
      * 是否需要保留所有依赖项
@@ -36,7 +38,7 @@ open class SoFileExtensions {
     var neededRetainAllDependencies: Boolean = true
 
     //强制保留所有依赖 对于minSdkVersion大于23的工程也保留所有依赖
-    var forceNeededRetainAllDependencies: Boolean = false
+    var forceNeededRetainAllDependencies: Boolean? = null
 
     /**
      * 配置自定义依赖
@@ -56,11 +58,8 @@ class SoFilePlugin : Plugin<Project> {
             val defaultConfig = android.defaultConfig
             pluginConfig.abiFilters = defaultConfig.ndk.abiFilters
             val minSdkVersion: Int = defaultConfig.minSdkVersion?.apiLevel ?: 0
-            if (pluginConfig.forceNeededRetainAllDependencies) {
-                pluginConfig.neededRetainAllDependencies = true
-            } else {
-                pluginConfig.neededRetainAllDependencies = minSdkVersion <= 23
-            }
+            pluginConfig.neededRetainAllDependencies = pluginConfig.forceNeededRetainAllDependencies
+                    ?: (minSdkVersion <= 23)
         }
     }
 }
@@ -281,7 +280,12 @@ class SoFileTransform(val extension: SoFileExtensions, val mergedAssetsFile: Fil
         return if (dependenciesSet.isNullOrEmpty()) {
             null
         } else {
-            dependenciesSet.stream().map { unmapLibraryName(it) }.collect(Collectors.toList())
+            val stream = dependenciesSet.stream()
+            if (extension.excludeDependencies.isNullOrEmpty()) {
+                stream
+            } else {
+                stream.filter { !extension.excludeDependencies!!.contains(it) }
+            }.map { unmapLibraryName(it) }.collect(Collectors.toList())
         }
     }
 

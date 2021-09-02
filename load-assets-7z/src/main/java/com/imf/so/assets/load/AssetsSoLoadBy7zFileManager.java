@@ -2,6 +2,7 @@ package com.imf.so.assets.load;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -26,6 +27,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author: lixiaoliang
@@ -40,7 +42,8 @@ public class AssetsSoLoadBy7zFileManager {
     private static File saveLibsDir;
     private static JSONObject[] supportedAbisInfo = new JSONObject[SUPPORTED_ABIS.length];
     private static String sProcessName;
-    static final Set<String> sLoadedLibraries = Collections.synchronizedSet(new HashSet<String>());
+    //    private static final ReentrantReadWriteLock sSoSourcesLock = new ReentrantReadWriteLock();
+    private static final Set<String> sLoadedLibraries = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     public static String getCurrentProcessName(Context context) {
         if (TextUtils.isEmpty(sProcessName)) {
@@ -208,7 +211,7 @@ public class AssetsSoLoadBy7zFileManager {
             loadItem(libName, libSoInfo);
         } else {
             sLoadedLibraries.add(libName);
-            System.loadLibrary(libName);
+            loadSoLibrary(libName);
         }
     }
 
@@ -221,21 +224,47 @@ public class AssetsSoLoadBy7zFileManager {
         if (libSoInfo.saveCompressToAssets && !TextUtils.isEmpty(libSoInfo.compressName)) {
             File source = new File(saveLibsDir, joinPath(libSoInfo.abi, libName, libSoInfo.md5));
             if (source.exists()) {
-                sLoadedLibraries.add(libName);
-                System.load(source.getAbsolutePath());
+                loadSo(source.getAbsolutePath(), libName);
             } else {
                 String assetsFile = joinPath(DIR_JNI_LIBS, libSoInfo.abi, libSoInfo.compressName);
                 String outPath = source.getParent();
-                Z7Extractor.extractAsset(appContext.getAssets(), assetsFile, outPath, new SingleFileExtractLoadSoFile(libName));
+                AssetManager assets = appContext.getAssets();
+//                try {
+//                    InputStream open = assets.open(assetsFile);
+//                    int available = open.available();
+//                    Log.d(DIR_JNI_LIBS, "准备解压:" + assetsFile + " , 解压前大小: " + (available >> 10) + "kb");
+//                    open.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+                Z7Extractor.extractAsset(assets, assetsFile, outPath, new SingleFileExtractLoadSoFile(libName));
             }
         } else {
+            loadSoLibrary(libName);
+        }
+    }
+
+    @KeepSystemLoadLib
+    private static void loadSo(String soAbsolutePath, String libName) {
+        try {
+            sLoadedLibraries.add(libName);
+            System.load(soAbsolutePath);
+        } catch (Throwable e) {
+            Log.e(DIR_JNI_LIBS, "loadSo: ", e);
+        }
+    }
+
+    @KeepSystemLoadLib
+    private static void loadSoLibrary(String libName) {
+        try {
             sLoadedLibraries.add(libName);
             System.loadLibrary(libName);
+        } catch (Throwable e) {
+            Log.e(DIR_JNI_LIBS, "loadSoLibrary: ", e);
         }
     }
 
 
-    @KeepSystemLoadLib
     private static class SingleFileExtractLoadSoFile extends SingleFileExtractSoFile {
         String libName;
 
@@ -249,8 +278,7 @@ public class AssetsSoLoadBy7zFileManager {
                 try {
                     // 设置权限为 rwxr-xr-extractFile
                     configPermisstion(extractFile);
-                    sLoadedLibraries.add(libName);
-                    System.load(extractFile.getAbsolutePath());
+                    loadSo(extractFile.getAbsolutePath(), libName);
                 } catch (Exception e) {
                     deleteFile(extractFile);
                     e.printStackTrace();

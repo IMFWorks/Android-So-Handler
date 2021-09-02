@@ -167,7 +167,7 @@ SoLoadHook.setSoLoadProxy(new XXXSoLoadProxy())
 
 ### 三、TODO
 1. 尝试对比压缩工具 zstd 与 7z
-2. 兼容[facebook](https://github.com/facebook)/**[SoLoader](https://github.com/facebook/SoLoader)**库解压加载
+2. 兼容[facebook/SoLoader](https://github.com/facebook/SoLoader)库解压加载
 3. 优化多线程加载so逻辑
 4. 针对deleteSoLibs中删除so后,自动上传云端与云端下发方案完成code
 > ps:前期先出下载列表,用于启动app时下载,让云端下发方案先跑起来

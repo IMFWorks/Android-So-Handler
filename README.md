@@ -20,13 +20,13 @@
 |     xiaoyuhost     |     426.9kb     |     309kb      |   1009kb(1M)   |       48       |
 |    crab_native     |     57.7kb      |      44kb      |     109kb      |       7        |
 
-> **apk包中所占大小:**apk属于zip压缩 所以apk包中已经为zip压缩后大小
+> **apk包中所占大小:** apk属于zip压缩 所以apk包中已经为zip压缩后大小
 >
-> **7z极限压缩大小:**7z极限压缩大小是执行7z a xxx.7z  libxxx.so -t7z -mx=9 -m0=LZMA2 -ms=10m -mf=on -mhc=on -mmt=on -mhcf 压缩有大小
+> **7z极限压缩大小:** 7z极限压缩大小是执行7z a xxx.7z  libxxx.so -t7z -mx=9 -m0=LZMA2 -ms=10m -mf=on -mhc=on -mmt=on -mhcf 压缩有大小
 >
 > **解压后实际大小:** 指so文件实际大小,AndroidStudio中文件大小
 >
-> **解压耗时(毫秒):**统计手机为谷歌**Pixel 2XL** 骁龙**835**处理器
+> **解压耗时(毫秒):** 统计手机为谷歌**Pixel 2XL** 骁龙**835**处理器
 
 ### 接入方式如下:
 

@@ -1,4 +1,7 @@
 # Android-So-Handler
+**`com.android.tools.build:gradle`版本需要`>=3.4.0`才可使用SoFilePlugin插件,SoLoadHookPlugin插件不受影响
+新版`3.5.0`以及`3.6.0`Transform已经无法处理so文件，后续尝试别的方式处理so文件，这里如果有好的办法欢迎提issues交流**
+
 **减包工具集合 , 通过处理so库实现减包**
 
 ### 特点如下:

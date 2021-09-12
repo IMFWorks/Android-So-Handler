@@ -10,8 +10,8 @@ dependencies {
     implementation gradleApi()
     //groovy sdk
     implementation localGroovy()
-    implementation 'com.android.tools.build:gradle:3.3.3'
-    implementation 'com.android.tools.build:gradle-api:3.3.3'
+    implementation "com.android.tools.build:gradle:$ANDROID_GRADLE_VERSION"
+    implementation "com.android.tools.build:gradle-api:$ANDROID_GRADLE_VERSION"
 }
 
 def uploadConfig() {

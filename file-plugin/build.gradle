@@ -21,8 +21,8 @@ dependencies {
     implementation gradleApi()
     //groovy sdk
     implementation localGroovy()
-    implementation 'com.android.tools.build:gradle:3.3.3'
-    implementation 'com.android.tools.build:gradle-api:3.3.3'
+    compileOnly "com.android.tools.build:gradle:4.1.1"
+    compileOnly "com.android.tools.build:gradle-api:4.1.1"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 

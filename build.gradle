@@ -9,7 +9,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:3.3.3"
+        classpath "com.android.tools.build:gradle:$ANDROID_GRADLE_VERSION"
         if (Boolean.parseBoolean(userPlugin)) {
             classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}"
             classpath "com.imf.so:file-plugin:${SO_PLUGIN_VERSION}"

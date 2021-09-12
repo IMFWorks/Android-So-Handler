@@ -53,7 +53,7 @@ allprojects {
 2. 复制工程下[so-file-config.gradle](so-file-config.gradle)到工程根目录
 3. 工程根目录**gradle.properties**中添加`SO_PLUGIN_VERSION=0.0.3`
 4. **app**的**build.gradle**中添加`apply from: "${rootDir}/so-file-config.gradle"`
-5. 在Application中对主进程调用`AssetsSoLoadBy7zFileManager.init(v.getContext());`初始化
+5. 在Application中调用`AssetsSoLoadBy7zFileManager.init(v.getContext());`初始化
 6. 修改根目录中[so-file-config.gradle](so-file-config.gradle)进行压缩删减库配置主要修改deleteSoLibs与compressSo2AssetsLibs如下:
 ```groovy
 //指定编辑阶段要删除的so库

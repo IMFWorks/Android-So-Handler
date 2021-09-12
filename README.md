@@ -34,84 +34,35 @@
 >
 > **解压耗时(毫秒):** 统计手机为谷歌**Pixel 2XL** 骁龙**835**处理器
 
-### 接入方式如下:
+# 接入方式如下:
 
 ps:配置较多全可走默认 ~_ ~!
-
+1. 根build.gradle中加入
 ```groovy
-//1.根build.gradle中加入
 buildscript {
     repositories {
         maven { url "https://raw.githubusercontent.com/IMFWorks/Android-So-Handler/master/maven" }
-        ...
-    }
-    dependencies {
-        ...
-        classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}" 
-        classpath "com.imf.so:file-plugin:${SO_PLUGIN_VERSION}"
-        ...
     }
 }
 allprojects {
     repositories {
-      ...
       maven { url "https://raw.githubusercontent.com/IMFWorks/Android-So-Handler/master/maven" }
-      ...
     }
 }
-
-//2.app工程中加入
-dependencies {
-	...
-  implementation "com.imf.so:load-assets-7z:${SO_PLUGIN_VERSION}"
-  ...
-}
-
-apply plugin: 'SoFilePlugin'
-SoFileConfig {
-    //设置debug下不删除与压缩so库
-    excludeBuildTypes = ['debug']
-    /**
-     * 强制保留所有依赖
-     * 默认为false时
-     * minSdkVersion <= 23 保留所有依赖
-     * minSdkVersion > 23  只保留deleteSoLibs与compressSo2AssetsLibs中处理过的依赖
-     */
-    forceNeededRetainAllDependencies = true
-    //设置要删除的so库
-    deleteSoLibs = [
-    ]
-    //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
-    //这里名字要是带有lib开头与.so结尾与apk中so库名称一致
-    //如果使用7z压缩请确保7z命令加入到环境变量
-    //mac推荐使用brew install p7zip进行安装
-    //windows 去https://www.7-zip.org/下载安装，别忘记配置7z到环境变量中
-    compressSo2AssetsLibs = [
-      'libxxx.so'
-    ]
-    /**
-     * 配置自定义依赖
-     * 用于解决 liba.so 并未声明依赖 libb.so 并且内部通过dlopen打开libb.so
-     * 或者反射System.loadLibrary等跳过hook加载so库等场景
-     * 如果没有这种情况可以不添加该配置,配置结构为Map<String,List<String>>
-     */
-    customDependencies = [
-            'liba.so': ['libb.so',...]
-    ]
-}
-
-apply plugin: 'SoLoadHookPlugin'
-SoLoadHookConfig {
-		//是否跳过R文件与BuildConfig
-		isSkipRAndBuildConfig = true
-		//设置跳过的包名,跳过的包不去hook 修改后请先clean
-		excludePackage = ['com.imf.test']
-}
-//3.初始化 
-AssetsSoLoadBy7zFileManager.init(getContext());
 ```
+2. 复制工程下[so-file-config.gradle](so-file-config.gradle)到工程根目录
+3. 工程根目录**gradle.properties**中添加`SO_PLUGIN_VERSION=0.0.3`
+4. **app**的**build.gradle**中添加`apply from: "${rootDir}/so-file-config.gradle"`
+5. 在Application中对主进程调用`AssetsSoLoadBy7zFileManager.init(v.getContext());`初始化
+6. 修改根目录中[so-file-config.gradle](so-file-config.gradle)进行压缩删减库配置主要修改deleteSoLibs与compressSo2AssetsLibs如下:
+```groovy
+//指定编辑阶段要删除的so库
+deleteSoLibs = []
+//指定至assets中的so库
+compressSo2AssetsLibs = []
+```
+**其他配置请参考注释**
 
-> SO_PLUGIN_VERSION 目前版本 `0.0.3-SNAPSHOT`
 
 ## 插件介绍
 
@@ -160,9 +111,15 @@ SoLoadHook.setSoLoadProxy(new XXXSoLoadProxy())
 > 如果不想在指定包名下修改 在excludePackage中配置报名
 > 如果不想在指定类或方法下被修改字节码,请添加注解@KeepSystemLoadLib
 
-### 二、SoFilePlugin插件依赖SoLoadHookPlugin
+### 二、SoFileTransformPlugin与SoFileAttachMergeTaskPlugin插件依赖SoLoadHookPlugin
+SoFileTransformPlugin与SoFileAttachMergeTaskPlugin功能一样只是编辑阶段插入口不同
+根据com.android.tools.build:gradle:x.x.x中版本号不同选择使用哪个
+3.4.0版本及以下使用SoFileTransformPlugin
+3.5.0 - 3.6.0版本使用SoFileAttachMergeTaskPlugin
+其他版本请自行尝试,如果都失败提交issues我这边进行适配
+已知问题最新版本4.1.0中添加了compressed_assets机制导致无法把压缩后的so文件放入asstes中,这个空闲时间阅读下4.1.0源码后适配 也欢迎大家push提交解决
 
-1. 通过transform插件对so库进行7z压缩(利用压缩差完成压缩apk),压缩后放入`asstes`下的`jniLib`
+1. 通过实现transform或在mergeNativeLibs中添加Action的方式,对so库进行7z压缩(利用压缩差实现压缩apk),压缩后放入`asstes`下的`jniLib`
 2. 根据压缩或删除so情况生成`info.json`
 3. 运行时进行解压加载 so
 

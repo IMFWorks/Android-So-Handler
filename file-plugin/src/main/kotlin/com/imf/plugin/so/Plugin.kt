@@ -23,8 +23,8 @@ abstract class SoFilePlugin : Plugin<Project> {
     protected open fun afterProjectEvaluate(project: Project) {
         val defaultConfig = android.defaultConfig
         pluginConfig.abiFilters = defaultConfig.ndk.abiFilters
-        val os = System.getenv("OS").toLowerCase()
-        if (os.contains("windows")) {
+        val os = System.getenv("OS")?.toLowerCase()
+        if (os != null && os.contains("windows")) {
             pluginConfig.exe7zName = "7z.exe"
         }
         val minSdkVersion: Int = defaultConfig.minSdkVersion?.apiLevel ?: 0

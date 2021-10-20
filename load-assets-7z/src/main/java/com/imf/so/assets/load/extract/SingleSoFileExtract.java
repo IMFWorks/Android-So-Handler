@@ -1,14 +1,15 @@
-package com.imf.so.assets.load;
+package com.imf.so.assets.load.extract;
 
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.hzy.lib7z.IExtractCallback;
+import com.imf.so.assets.load.AssetsSoLoadBy7zFileManager;
 
 import java.io.File;
 
-abstract class SingleFileExtractSoFile implements IExtractCallback {
+abstract class SingleSoFileExtract implements IExtractCallback {
     private File extractFile;
     private static long sumTime = 0l;
     private long time;

@@ -23,19 +23,20 @@ SoFileConfig {
     forceNeededRetainAllDependencies = true
     //设置要删除的so库
     deleteSoLibs = [
+            'libblur-lib.so',
     ]
     //设置要压缩的库 注意libun7zip.so 为7z解压库不可压缩
     compressSo2AssetsLibs = [
             'libtestLibrary.so',
             'libsource.so',
             'libnative-aar-lib.so',
-            'libblur-lib.so',
     ]
     //排除依赖
     excludeDependencies = [
             'libGLESv2.so',
             'libGLESv3.so',
             'libgraphicsenv.so',
+            'libjnigraphics.so',
             'liblog.so',
             'liblz4.so',
             'liblzma.so'

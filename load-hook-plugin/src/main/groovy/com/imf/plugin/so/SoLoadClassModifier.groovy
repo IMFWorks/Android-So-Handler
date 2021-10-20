@@ -144,7 +144,7 @@ class SoLoadClassModifier {
             //COMPUTE_MAXS会让我们免于手动计算局部变量数和方法栈大小
             ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_MAXS)
             ClassVisitor cv = new LoadLibraryVisitor(writer)
-            reader.accept(cv, 8)
+            reader.accept(cv, ClassReader.SKIP_DEBUG)
             return writer.toByteArray()
             return input
         } else { //无需转换

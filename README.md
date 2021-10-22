@@ -2,8 +2,10 @@
 **减包工具集合 , 通过处理so库实现减包**
 
 ### 特点如下:
-1. 支持APK中所有通过System.Load/LoadLibrary加载的So库文件（包含Maven、aar等方式进入三方库与源码中的so文件）进行处理。
+1. 支持APK中所有通过`System.Load/LoadLibrary`加载的So库文件（包含Maven、aar等方式进入三方库与源码中的so文件）进行处理。
 2. 支持7z压缩与云端下发
+3. 对项目代码侵入少如果只是压缩so库只需一行初始化`AssetsSoLoadBy7zFileManager.init(v.getContext());`
+4. 云端下发so库需要在`init`中传入`NeedDownloadSoistener`自行下载，并在下载后调用`SoFileInfo#insertOrUpdateCache(saveLibsDir,File)`插入缓存即可
 
 ### 数据对比:
 

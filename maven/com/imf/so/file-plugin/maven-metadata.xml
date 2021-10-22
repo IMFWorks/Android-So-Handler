@@ -3,14 +3,15 @@
   <groupId>com.imf.so</groupId>
   <artifactId>file-plugin</artifactId>
   <versioning>
-    <release>0.0.4</release>
+    <release>0.0.5</release>
     <versions>
       <version>0.0.1</version>
       <version>0.0.2</version>
       <version>0.0.3-SNAPSHOT</version>
       <version>0.0.3</version>
       <version>0.0.4</version>
+      <version>0.0.5</version>
     </versions>
-    <lastUpdated>20211020102920</lastUpdated>
+    <lastUpdated>20211022121432</lastUpdated>
   </versioning>
 </metadata>

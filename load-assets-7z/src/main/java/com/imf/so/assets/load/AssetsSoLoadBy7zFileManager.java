@@ -10,12 +10,16 @@ import com.imf.so.SoLoadHook;
 import com.hzy.lib7z.Z7Extractor;
 import com.imf.so.assets.load.bean.SoFileInfo;
 import com.imf.so.assets.load.extract.SingleSoFileExtractAndLoad;
-import com.imf.so.assets.load.utils.LoadRecord;
+import com.imf.so.assets.load.utils.LoadRecordHelp;
 import com.imf.so.assets.load.utils.LoadUtils;
+import com.imf.so.assets.load.utils.LogUtil;
+import com.imf.so.assets.load.bean.AbiSoFileConfigInfo;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @Author: lixiaoliang
@@ -26,14 +30,17 @@ public class AssetsSoLoadBy7zFileManager {
     public final static String DIR_JNI_LIBS = "jniLibs";
     public final static String ASSETS_CONFIG_INFO_PATH = "jniLibs/info.json";
     private static Context sAppContext;
-    private static String sSupportedAbi;
     private static File sSaveLibsDir;
-    private static JSONObject sSupportedAbisInfo;
-    //    private static final ReentrantReadWriteLock sSoSourcesLock = new ReentrantReadWriteLock();
+    private static AbiSoFileConfigInfo sSoLoadInfo;
 
+    private static final Map<String, Object> sLoadingLibraries = new HashMap<>();
 
-    public static boolean init(Context context) {
+    public static boolean init(Context context, NeedDownloadSoListener listener) {
         if (sSaveLibsDir == null) {
+            sSaveLibsDir = context.getDir(DIR_JNI_LIBS, Context.MODE_PRIVATE);
+            //读取进程名称
+            LoadUtils.getCurrentProcessNameByContext(context);
+
             JSONObject jsonObject = loadAssetsConfigJson(context);
             if (jsonObject == null) {
                 Log.e(DIR_JNI_LIBS, "读取配置信息错误,导致初始化失败");
@@ -45,23 +52,26 @@ public class AssetsSoLoadBy7zFileManager {
                 JSONObject abiInfo = jsonObject.optJSONObject(abi);
                 if (abiInfo != null) {
                     //这里只需确定支持的即可 系统不允许加载不同架构so文件
-                    sSupportedAbisInfo = abiInfo;
-                    sSupportedAbi = abi;
+                    sSoLoadInfo = AbiSoFileConfigInfo.tryLoadByJson(sSaveLibsDir, abi, abiInfo);
                     break;
                 }
             }
-            if (sSupportedAbisInfo == null) {
+            if (sSoLoadInfo == null) {
                 Log.e(DIR_JNI_LIBS, "so配置abi,不支持该平台");
                 return false;
             }
             sAppContext = context.getApplicationContext();
-            sSaveLibsDir = context.getDir(DIR_JNI_LIBS, Context.MODE_PRIVATE);
-            //读取进程名称
-            LoadUtils.getCurrentProcessNameByContext(context);
             //设置加载代理
             SoLoadHook.setSoLoadProxy(new AssetsSoLoadBy7z());
+            if (listener != null && sSoLoadInfo.isNeedDownloadSo()) {
+                listener.onNeedDownloadSoInfo(sSaveLibsDir, sSoLoadInfo.getNeedDownloadList());
+            }
         }
         return true;
+    }
+
+    public static boolean init(Context context) {
+        return init(context, null);
     }
 
 
@@ -87,16 +97,16 @@ public class AssetsSoLoadBy7zFileManager {
      * @param libName
      */
     public static void loadLibraryAndDependencies(String libName) {
-        if (LoadRecord.isLoaded(libName)) {
+        if (LoadRecordHelp.isLoaded(libName)) {
             Log.d(DIR_JNI_LIBS, "重复加载" + libName);
             return;
         }
-        Log.d(DIR_JNI_LIBS, LoadUtils.joinString(" ", "进程:", LoadUtils.getCurrentProcessByCache(), "so库名称:", libName, "是否是主线程:", Boolean.toString(LoadUtils.isMainThread())));
-        SoFileInfo libSoInfo = SoFileInfo.fromJson(sSupportedAbisInfo, sSupportedAbi, libName);
-        if (libSoInfo != null) {
-            loadBySoFileInfo(libSoInfo);
+        LogUtil.printDebug(" 进程:", LoadUtils.getCurrentProcessByCache(), " so库名称:", libName, " 是否是主线程:", Boolean.toString(LoadUtils.isMainThread()));
+        SoFileInfo soFileInfoByName = sSoLoadInfo.getSoFileInfoByName(libName);
+        if (soFileInfoByName != null) {
+            loadBySoFileInfo(soFileInfoByName);
         } else {
-            LoadRecord.loadSoLibrary(libName);
+            LoadRecordHelp.loadSoLibrary(libName);
         }
     }
 
@@ -111,18 +121,32 @@ public class AssetsSoLoadBy7zFileManager {
                 loadLibraryAndDependencies(dependency);
             }
         }
-        if (libSoInfo.saveCompressToAssets && !TextUtils.isEmpty(libSoInfo.compressName)) {
-            File source = new File(sSaveLibsDir, LoadUtils.joinPath(libSoInfo.abi, libSoInfo.libName, libSoInfo.md5));
+        synchronized (getLoadingLibLock(libSoInfo)) {
+            LogUtil.printDebug("*********获得锁开始加载:", libSoInfo.libName);
+            File source = libSoInfo.obtainSoFileBySaveLibsDir(sSaveLibsDir);
             //已经解压过,存在so文件直接加载
             if (source.exists()) {
-                LoadRecord.loadSoFile(source.getAbsolutePath(), libSoInfo.libName);
-            } else {
+                LoadRecordHelp.loadSoFile(source.getAbsolutePath(), libSoInfo.libName);
+            } else if (libSoInfo.saveCompressToAssets && !TextUtils.isEmpty(libSoInfo.compressName)) {//解压加载
                 loadByExtractAsset(libSoInfo, source);
+            } else {//尝试正常加载 逻辑上不会触发到else
+                LoadRecordHelp.loadSoLibrary(libSoInfo.libName);
             }
-        } else {
-            LoadRecord.loadSoLibrary(libSoInfo.libName);
         }
     }
+
+    private static synchronized Object getLoadingLibLock(SoFileInfo libSoInfo) {
+        if (sLoadingLibraries.containsKey(libSoInfo.libName)) {
+            LogUtil.printDebug("获取到已存在加载锁:", libSoInfo.libName);
+            return sLoadingLibraries.get(libSoInfo.libName);
+        } else {
+            Object loadingLibLock = new Object();
+            sLoadingLibraries.put(libSoInfo.libName, loadingLibLock);
+            LogUtil.printDebug("+++创建加载锁:", libSoInfo.libName);
+            return loadingLibLock;
+        }
+    }
+
 
     /**
      * 解压至指定文件加载
@@ -143,6 +167,7 @@ public class AssetsSoLoadBy7zFileManager {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        LogUtil.printDebug("*********解压加载:", libSoInfo.libName);
         Z7Extractor.extractAsset(assets, assetsFile, outPath, new SingleSoFileExtractAndLoad(libSoInfo.libName));
     }
 

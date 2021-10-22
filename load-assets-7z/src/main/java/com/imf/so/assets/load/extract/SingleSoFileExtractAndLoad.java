@@ -2,7 +2,7 @@ package com.imf.so.assets.load.extract;
 
 import android.util.Log;
 
-import com.imf.so.assets.load.utils.LoadRecord;
+import com.imf.so.assets.load.utils.LoadRecordHelp;
 
 import java.io.File;
 
@@ -20,7 +20,7 @@ public class SingleSoFileExtractAndLoad extends SingleSoFileExtract {
             try {
                 // 设置权限为 rwxr-xr-extractFile
                 configPermisstion(extractFile);
-                LoadRecord.loadSoFile(extractFile.getAbsolutePath(), libName);
+                LoadRecordHelp.loadSoFile(extractFile.getAbsolutePath(), libName);
             } catch (Exception e) {
                 deleteFile(extractFile);
                 e.printStackTrace();

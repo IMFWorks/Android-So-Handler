@@ -1,4 +1,4 @@
-if [ $1 = "-l" ]; then
+if [ $1 = "-" ]; then
   echo ---------------------------------------------------------更新load-assets-7z---------------------------------------------------------
   ./gradlew -P userPlugin=false :load-assets-7z:upload
 fi

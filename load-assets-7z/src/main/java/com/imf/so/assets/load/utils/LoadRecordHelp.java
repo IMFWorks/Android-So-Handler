@@ -47,7 +47,6 @@ public final class LoadRecordHelp {
                 sSoSourcesLock.writeLock().unlock();
             }
         }
-        LogUtil.printDebug(result, "*********loadSoFile结束加载:" + libName);
         return result;
     }
 
@@ -65,7 +64,6 @@ public final class LoadRecordHelp {
                 sSoSourcesLock.writeLock().unlock();
             }
         }
-        LogUtil.printDebug(result, "*********loadSoLibrary结束加载:" + libName);
         return result;
     }
 

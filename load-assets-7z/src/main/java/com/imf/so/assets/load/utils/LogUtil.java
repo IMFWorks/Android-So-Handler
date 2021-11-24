@@ -62,10 +62,6 @@ public final class LogUtil {
         }
     }
 
-    public static void printError(Object... msg) {
-        printError(false, msg);
-    }
-
     public static void printThrowable(Throwable error, Object... msg) {
         printError(true, msg);
         error.printStackTrace();

@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                         stringBuilder.append("源码引入: ").append(NativeSourceTest.stringFromJNI()).append('\n');
                         stringBuilder.append("aar引入: ").append(NativeLibTest.stringFromJNI()).append('\n');
                         stringBuilder.append("子工程引入: ").append(NativeTestLibrary.stringFromJNI()).append('\n');
-                        image.setImageBitmap(BitmapBlur.blur(bitmap, 10));
+                        image.setImageBitmap(BitmapBlur.blur(bitmap, 25));
                         stringBuilder.append("Maven引入: >背景图片变模糊<");
                         tv.setText(stringBuilder.toString());
                         updateCacheDir();

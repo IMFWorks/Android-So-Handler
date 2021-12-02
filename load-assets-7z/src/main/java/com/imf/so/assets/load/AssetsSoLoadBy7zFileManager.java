@@ -99,8 +99,9 @@ public class AssetsSoLoadBy7zFileManager {
      * @param libName
      */
     public static void loadLibraryAndDependencies(String libName) {
+        LogUtil.printDebug(libName, " - 加在进程:", LoadUtils.getCurrentProcessByCache());
         if (LoadRecordHelp.isLoaded(libName)) {
-            LogUtil.printDebug("重复加载" + libName);
+            LogUtil.printDebug("重复加载:", libName);
             return;
         }
         SoFileInfo soFileInfoByName = sSoLoadInfo.getSoFileInfoByName(libName);

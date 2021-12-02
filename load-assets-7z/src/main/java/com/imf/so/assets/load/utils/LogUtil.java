@@ -42,10 +42,11 @@ public final class LogUtil {
 
     public static void printDebug(Object... msg) {
         if (sLogEnable) {
-            StringBuilder builder = joinBuilder("Thread(", Thread.currentThread().getName(), ")");
+            StringBuilder builder = new StringBuilder();
             for (Object s : msg) {
                 builder.append(s);
             }
+            builder.append(" - Thread(").append(Thread.currentThread().getName()).append(")");
             print(DEBUG, null, builder.toString());
         }
     }

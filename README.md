@@ -49,7 +49,8 @@ allprojects {
 }
 ```
 2. 复制工程下[so-file-config.gradle](so-file-config.gradle)到工程根目录
-3. 工程根目录**gradle.properties**中添加`SO_PLUGIN_VERSION=0.0.5`
+3. 工程根目录**gradle.properties**中添加`SO_PLUGIN_VERSION=0.0.6`
+   **build.gradle**中添加`classpath "com.imf.so:load-hook-plugin:${SO_PLUGIN_VERSION}"`和`classpath "com.imf.so:file-plugin:${SO_PLUGIN_VERSION}"`
 4. **app**的**build.gradle**中添加`apply from: "${rootDir}/so-file-config.gradle"`
 5. 在Application中调用`AssetsSoLoadBy7zFileManager.init(v.getContext());`初始化,重载方法支持传入NeedDownloadSoListener完成云端所需要so库下载,下载后使用SoFileInfo#insertOrUpdateCache(saveLibsDir,File)插入缓存中
 6. 修改根目录中[so-file-config.gradle](so-file-config.gradle)进行压缩删减库配置主要修改deleteSoLibs与compressSo2AssetsLibs如下:

@@ -7,9 +7,9 @@ android {
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion 26
         versionCode 1
         versionName '1.0.0'
+        consumerProguardFiles 'consumer-proguard-rules.pro'
     }
     externalNativeBuild {
         cmake {
@@ -27,7 +27,7 @@ android {
         }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles 'consumer-proguard-rules.pro'
         }
     }
     compileOptions {

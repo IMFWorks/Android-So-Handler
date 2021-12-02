@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
         mCache = findViewById(R.id.cache_text);
         ImageView image = findViewById(R.id.image);
         final Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.image);
-        image.setImageBitmap(bitmap);
         final TextView downloadTextView = findViewById(R.id.download_text);
         updateCacheDir();
         TextView tv = findViewById(R.id.sample_text);
@@ -57,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
                         stringBuilder.append("源码引入: ").append(NativeSourceTest.stringFromJNI()).append('\n');
                         stringBuilder.append("aar引入: ").append(NativeLibTest.stringFromJNI()).append('\n');
                         stringBuilder.append("子工程引入: ").append(NativeTestLibrary.stringFromJNI()).append('\n');
-                        image.setImageBitmap(BitmapBlur.blur(bitmap, 25));
                         stringBuilder.append("Maven引入: >背景图片变模糊<");
                         tv.setText(stringBuilder.toString());
+                        image.setImageBitmap(BitmapBlur.blur(bitmap, 9));
                         updateCacheDir();
                     }
                 }, 100);

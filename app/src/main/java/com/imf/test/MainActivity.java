@@ -68,30 +68,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSourceLib() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NativeSourceTest.load();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NativeSourceTest.load();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NativeSourceTest.load();
-            }
-        }).start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                NativeSourceTest.load();
-            }
-        }).start();
+        for (int i = 0; i < 10; i++) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    NativeSourceTest.load();
+                }
+            }).start();
+        }
         NativeSourceTest.load();
     }
 
